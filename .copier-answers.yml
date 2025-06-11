@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.3.8
+_src_path: git@github.com:jupyterlab/extension-template.git
+author_email: yahia.heni@quantstack.net
+author_name: Yahia HENI
+has_binder: false
+has_settings: true
+kind: frontend
+labextension_name: jupytercad-urdf
+project_short_description: A JupyterLab extension adding features like exporting jcad
+    files to urdf.
+python_name: jupytercad_urdf
+repository: https://github.com/Yahiewi/JupyterCAD-urdf.git
+test: true
+

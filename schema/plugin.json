@@ -1,0 +1,8 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "jupytercad-urdf",
+  "description": "jupytercad-urdf settings.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
