@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "Object": {
+      "type": "string",
+      "description": "Object to export as URDF"
+    },
+    "Mass": {
+      "type": "number",
+      "description": "Mass of the object in kg",
+      "default": 1.0
+    }
+  },
+  "required": ["Object"]
+}
