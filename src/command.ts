@@ -1,4 +1,4 @@
-import { FormDialog, newName } from '@jupytercad/base';
+import { FormDialog } from '@jupytercad/base';
 import {
   IDict,
   IJCadObject,
@@ -35,12 +35,15 @@ namespace Private {
     shape: 'Post::ExportSTL',
     default: (model: IJupyterCadModel) => {
       const objects = model.getAllObject();
-      const selected = model.localState?.selected?.value || [];
+      const selected = model.localState?.selected?.value || {};
+      const selectedObjectNames = Object.keys(selected);
+      const selectedObjectName =
+        selectedObjectNames.length > 0
+          ? selectedObjectNames[0]
+          : (objects[0]?.name ?? '');
       return {
-        Name: newName('STL_Export', model),
-        //@ts-expect-error wip
-        Object: selected.length > 0 ? selected[0] : (objects[0]?.name ?? ''),
-        Enabled: true
+        Name: selectedObjectName ? `${selectedObjectName}_STL` : 'STL_Export',
+        Object: selectedObjectName
       };
     },
     syncData: (model: IJupyterCadModel) => {
@@ -92,10 +95,19 @@ namespace Private {
 
       const formJsonSchema = JSON.parse(JSON.stringify(formSchema));
       formJsonSchema['required'] = ['Name', ...formJsonSchema['required']];
+
+      // Get available objects for the dropdown
+      const objects = current.model.getAllObject();
+      const objectNames = objects.map(obj => obj.name);
+
       formJsonSchema['properties'] = {
         Name: { type: 'string', description: 'The Name of the Export Object' },
         ...formJsonSchema['properties']
       };
+
+      // Update the Object field with available options
+      formJsonSchema['properties']['Object']['enum'] = objectNames;
+
       const { ...props } = formJsonSchema;
       const dialog = new FormDialog({
         model: current.model,

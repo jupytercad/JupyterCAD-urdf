@@ -3,12 +3,8 @@
   "properties": {
     "Object": {
       "type": "string",
-      "description": "The object to export to STL"
-    },
-    "Enabled": {
-      "type": "boolean",
-      "description": "Enable STL export for this object",
-      "default": true
+      "description": "The object to export to STL",
+      "enum": []
     }
   },
   "required": ["Object"],
