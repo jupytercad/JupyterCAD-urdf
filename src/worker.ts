@@ -11,8 +11,8 @@ import { v4 as uuid } from 'uuid';
 export class STLWorker implements IJCadWorker {
   constructor(options: STLWorker.IOptions) {
     console.log('STLWorker constructor called');
-    // Resolve the ready promise immediately since we don't have async initialization
-    this._ready.resolve();
+    this._tracker = options.tracker;
+    //this._ready.resolve();
   }
 
   shapeFormat = JCadWorkerSupportedFormat.STL;
@@ -78,15 +78,36 @@ export class STLWorker implements IJCadWorker {
     URL.revokeObjectURL(url);
 
     console.log(`STL file exported successfully: ${link.download}`);
+
+    this._cleanupExportObject(objectName);
+  }
+
+  private _cleanupExportObject(exportObjectName: string): void {
+    // Get the current widget from the tracker
+    const currentWidget = this._tracker.currentWidget;
+    if (!currentWidget) {
+      console.warn('No current widget found, cannot cleanup export object');
+      return;
+    }
+
+    const model = currentWidget.model;
+    const sharedModel = model.sharedModel;
+
+    if (sharedModel && sharedModel.objectExists(exportObjectName)) {
+      sharedModel.transact(() => {
+        sharedModel.removeObjectByName(exportObjectName);
+        console.log(`Cleaned up export object: ${exportObjectName}`);
+      });
+    }
   }
 
   private _ready = new PromiseDelegate<void>();
   private _messageHandlers = new Map();
+  private _tracker: IJupyterCadTracker;
 }
 
 export namespace STLWorker {
   export interface IOptions {
-    // I can remove this
     tracker: IJupyterCadTracker;
   }
 }
