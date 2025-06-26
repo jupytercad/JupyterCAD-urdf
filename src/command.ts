@@ -9,12 +9,10 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
-
-import { WORKER_ID } from './worker';
 import formSchema from './schema.json';
 
 export namespace CommandIDs {
-  export const exportUrdf = 'jupytercad:urdf:export';
+  export const exportSTL = 'jupytercad:stl:export';
 }
 
 export function addCommands(
@@ -24,69 +22,70 @@ export function addCommands(
 ) {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
-
-  commands.addCommand(CommandIDs.exportUrdf, {
-    label: trans.__('Export to URDF'),
+  commands.addCommand(CommandIDs.exportSTL, {
+    label: trans.__('Export to STL'),
     isEnabled: () => Boolean(tracker.currentWidget),
-    execute: Private.executeUrdfExportFactory(tracker)
+    execute: Private.executeExportSTL(tracker)
   });
 }
 
 namespace Private {
-  const urdfExporter = {
-    title: 'URDF Export Parameters',
+  const stlOperator = {
+    title: 'Export to STL',
+    shape: 'Post::ExportSTL',
     default: (model: IJupyterCadModel) => {
       const objects = model.getAllObject();
-      const selected = model.localState?.selected?.value;
-      let objectName = objects[0]?.name ?? '';
-
-      if (selected) {
-        for (const key in selected) {
-          if (selected[key].type === 'shape') {
-            objectName = key;
-            break;
-          }
-        }
-      }
-
+      const selected = model.localState?.selected?.value || [];
       return {
-        Name: newName('UrdfExport', model),
-        Object: objectName,
-        Mass: 1.0
+        Name: newName('STL_Export', model),
+        //@ts-expect-error wip
+        Object: selected.length > 0 ? selected[0] : (objects[0]?.name ?? ''),
+        Enabled: true
       };
     },
     syncData: (model: IJupyterCadModel) => {
       return (props: IDict) => {
         const { Name, ...parameters } = props;
-        const objectModel: IJCadObject = {
-          shape: 'Post::UrdfExport' as any,
+        console.log(
+          'JCadWorkerSupportedFormat.STL value:',
+          JCadWorkerSupportedFormat.STL
+        );
+        console.log(
+          'All JCadWorkerSupportedFormat values:',
+          JCadWorkerSupportedFormat
+        );
+        const objectModel = {
+          shape: 'Post::ExportSTL',
           parameters,
           visible: true,
           name: Name,
           shapeMetadata: {
             shapeFormat: JCadWorkerSupportedFormat.STL,
-            workerId: WORKER_ID
+            workerId: 'jupytercad-stl:worker'
           }
         };
-
+        console.log('Created objectModel:', objectModel);
         const sharedModel = model.sharedModel;
         if (sharedModel) {
-          if (!sharedModel.objectExists(objectModel.name)) {
-            sharedModel.addObject(objectModel);
-          } else {
-            showErrorMessage(
-              'The object already exists',
-              'There is an existing object with the same name.'
-            );
-          }
+          sharedModel.transact(() => {
+            if (!sharedModel.objectExists(objectModel.name)) {
+              sharedModel.addObject(objectModel as IJCadObject);
+            } else {
+              showErrorMessage(
+                'The object already exists',
+                'There is an existing object with the same name.'
+              );
+            }
+          });
         }
       };
     }
   };
 
-  export function executeUrdfExportFactory(tracker: IJupyterCadTracker) {
+  export function executeExportSTL(tracker: IJupyterCadTracker) {
     return async (args: any) => {
       const current = tracker.currentWidget;
+
       if (!current) {
         return;
       }
@@ -94,19 +93,18 @@ namespace Private {
       const formJsonSchema = JSON.parse(JSON.stringify(formSchema));
       formJsonSchema['required'] = ['Name', ...formJsonSchema['required']];
       formJsonSchema['properties'] = {
-        Name: { type: 'string', description: 'The Name of the Export' },
+        Name: { type: 'string', description: 'The Name of the Export Object' },
         ...formJsonSchema['properties']
       };
-
+      const { ...props } = formJsonSchema;
       const dialog = new FormDialog({
         model: current.model,
-        title: urdfExporter.title,
-        sourceData: urdfExporter.default(current.model),
-        schema: formJsonSchema,
-        syncData: urdfExporter.syncData(current.model),
+        title: stlOperator.title,
+        sourceData: stlOperator.default(current.model),
+        schema: props,
+        syncData: stlOperator.syncData(current.model),
         cancelButton: true
       });
-
       await dialog.launch();
     };
   }

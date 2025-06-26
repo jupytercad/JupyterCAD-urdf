@@ -3,13 +3,14 @@
   "properties": {
     "Object": {
       "type": "string",
-      "description": "Object to export as URDF"
+      "description": "The object to export to STL"
     },
-    "Mass": {
-      "type": "number",
-      "description": "Mass of the object in kg",
-      "default": 1.0
+    "Enabled": {
+      "type": "boolean",
+      "description": "Enable STL export for this object",
+      "default": true
     }
   },
-  "required": ["Object"]
+  "required": ["Object"],
+  "additionalProperties": false
 }

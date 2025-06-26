@@ -1,28 +1,25 @@
 import {
-  IDisplayPost,
-  IJCadObject,
   IJCadWorker,
-  IPostOperatorInput,
-  IPostResult,
+  IJupyterCadTracker,
+  IWorkerMessageBase,
   JCadWorkerSupportedFormat,
-  MainAction,
   WorkerAction
 } from '@jupytercad/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { v4 as uuid } from 'uuid';
 
-export const WORKER_ID = 'jupytercad-urdf-worker';
-
-export class UrdfWorker implements IJCadWorker {
-  constructor() {
+export class STLWorker implements IJCadWorker {
+  constructor(options: STLWorker.IOptions) {
+    console.log('STLWorker constructor called');
+    // Resolve the ready promise immediately since we don't have async initialization
     this._ready.resolve();
   }
+
+  shapeFormat = JCadWorkerSupportedFormat.STL;
 
   get ready(): Promise<void> {
     return this._ready.promise;
   }
-
-  shapeFormat = JCadWorkerSupportedFormat.STL;
 
   register(options: {
     messageHandler: ((msg: any) => void) | ((msg: any) => Promise<void>);
@@ -41,79 +38,55 @@ export class UrdfWorker implements IJCadWorker {
     this._messageHandlers.delete(id);
   }
 
-  postMessage(msg: {
-    id: string;
-    action: WorkerAction;
-    payload?: IPostOperatorInput;
-  }): void {
+  postMessage(msg: IWorkerMessageBase): void {
+    console.log('STLWorker received message:', msg);
+
     if (msg.action !== WorkerAction.POSTPROCESS) {
+      console.log('Not a POSTPROCESS action, ignoring');
       return;
     }
 
-    if (msg.payload) {
-      const { jcObject, postShape } = msg.payload;
-      if (!postShape) {
-        return;
-      }
+    if (msg.payload && Object.keys(msg.payload).length > 0) {
+      const jCadObject = msg.payload['jcObject'];
+      const stlContent = msg.payload['postShape'];
 
-      // Generate URDF from STL data
-      const stlString =
-        typeof postShape === 'string'
-          ? postShape
-          : new TextDecoder().decode(postShape);
-      const urdfContent = this._generateUrdf(jcObject, stlString);
-
-      const payload: {
-        jcObject: IJCadObject;
-        postResult: IPostResult;
-      }[] = [
-        {
-          postResult: {
-            format: 'STL',
-            binary: false,
-            value: urdfContent
-          },
-          jcObject
-        }
-      ];
-
-      const handler: (msg: IDisplayPost) => void = this._messageHandlers.get(
-        msg.id
-      );
-      if (handler) {
-        handler({ action: MainAction.DISPLAY_POST, payload });
+      if (stlContent && typeof stlContent === 'string') {
+        this._downloadSTL(jCadObject.name, stlContent);
+      } else {
+        console.error('No STL content received for object:', jCadObject.name);
       }
     }
   }
 
-  private _generateUrdf(jcObject: IJCadObject, stlContent: string): string {
-    const objectName = jcObject.name || 'unnamed_object';
-    const mass = jcObject.parameters?.Mass || 1.0;
+  private _downloadSTL(objectName: string, stlContent: string): void {
+    console.log(`Downloading STL for object: ${objectName}`);
+    console.log(`STL content length: ${stlContent.length}`);
 
-    // Simple URDF template
-    const urdf = `<?xml version="1.0"?>
-  <robot name="${objectName}">
-    <link name="${objectName}_link">
-      <visual>
-        <geometry>
-          <mesh filename="${objectName}.stl"/>
-        </geometry>
-      </visual>
-      <collision>
-        <geometry>
-          <mesh filename="${objectName}.stl"/>
-        </geometry>
-      </collision>
-      <inertial>
-        <mass value="${mass}"/>
-        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
-      </inertial>
-    </link>
-  </robot>`;
+    // Create a blob and download link
+    const blob = new Blob([stlContent], {
+      type: 'application/octet-stream'
+    });
+    const url = URL.createObjectURL(blob);
 
-    return urdf;
+    // Create download link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${objectName.toLowerCase().replace(/[^a-z0-9]/g, '_')}.stl`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`STL file exported successfully: ${link.download}`);
   }
 
   private _ready = new PromiseDelegate<void>();
   private _messageHandlers = new Map();
+}
+
+export namespace STLWorker {
+  export interface IOptions {
+    // I can remove this
+    tracker: IJupyterCadTracker;
+  }
 }

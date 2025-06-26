@@ -15,69 +15,68 @@ import {
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-
-import { addCommands, CommandIDs } from './command';
-import { UrdfWorker, WORKER_ID } from './worker';
+import { CommandIDs, addCommands } from './command';
 import formSchema from './schema.json';
+import { STLWorker } from './worker';
 
 /**
- * Initialization data for the jupytercad-urdf extension.
+ * Initialization data for the jupytercad-stl extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupytercad-urdf:plugin',
-  description:
-    'A JupyterLab extension adding features like exporting jcad files to urdf.',
+  id: 'jupytercad-stl:plugin',
+  description: 'A JupyterCAD STL export extension',
   autoStart: true,
   requires: [
     IJCadWorkerRegistryToken,
     IJCadFormSchemaRegistryToken,
     IJupyterCadDocTracker,
-    IJCadExternalCommandRegistryToken,
-    IMainMenu
+    IJCadExternalCommandRegistryToken
   ],
-  optional: [ISettingRegistry, ITranslator],
-  activate: async (
+  optional: [IMainMenu, ISettingRegistry, ITranslator],
+  activate: (
     app: JupyterFrontEnd,
     workerRegistry: IJCadWorkerRegistry,
     schemaRegistry: IJCadFormSchemaRegistry,
     tracker: IJupyterCadTracker,
     externalCommandRegistry: IJCadExternalCommandRegistry,
-    mainMenu: IMainMenu,
-    settingRegistry?: ISettingRegistry,
+    mainMenu?: IMainMenu | null,
+    settingRegistry?: ISettingRegistry | null,
     translator?: ITranslator
   ) => {
-    console.log('JupyterLab extension jupytercad-urdf is activated!');
+    console.log('JupyterLab extension jupytercad-stl is activated!');
 
     translator = translator ?? nullTranslator;
 
-    // Create and register the URDF worker
-    const worker = new UrdfWorker();
+    const WORKER_ID = 'jupytercad-stl:worker';
+    const worker = new STLWorker({ tracker });
+    console.log('Created STLWorker:', worker);
+    console.log('Worker shapeFormat:', worker.shapeFormat);
+
     workerRegistry.registerWorker(WORKER_ID, worker);
+    console.log('Registered worker with ID:', WORKER_ID);
 
-    // Register the form schema for URDF export
-    schemaRegistry.registerSchema('Post::UrdfExport', formSchema);
-
-    // Add commands
-    addCommands(app, tracker, translator);
-
-    // Add the export command to the main "File" menu
-    mainMenu.fileMenu.addGroup([{ command: CommandIDs.exportUrdf }], 100);
-
-    // Register external command
-    externalCommandRegistry.registerCommand({
-      name: 'Export to URDF',
-      id: CommandIDs.exportUrdf
+    // Let's also check if the worker is properly registered
+    const allWorkers = workerRegistry.getAllWorkers();
+    console.log('All registered workers:', allWorkers);
+    allWorkers.forEach((worker, index) => {
+      console.log(`Worker ${index}:`, {
+        shapeFormat: worker.shapeFormat,
+        ready: worker.ready,
+        constructor: worker.constructor.name
+      });
     });
 
-    if (settingRegistry) {
-      settingRegistry
-        .load(plugin.id)
-        .then(settings => {
-          console.log('jupytercad-urdf settings loaded:', settings.composite);
-        })
-        .catch(reason => {
-          console.error('Failed to load settings for jupytercad-urdf.', reason);
-        });
+    schemaRegistry.registerSchema('Post::ExportSTL', formSchema);
+
+    addCommands(app, tracker, translator);
+    externalCommandRegistry.registerCommand({
+      name: 'Export to STL',
+      id: CommandIDs.exportSTL
+    });
+
+    // Optionally add to main menu if available
+    if (mainMenu) {
+      mainMenu.fileMenu.addGroup([{ command: CommandIDs.exportSTL }], 100);
     }
   }
 };
