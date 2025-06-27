@@ -10,6 +10,7 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import formSchema from './schema.json';
+import { exportIcon } from './icon';
 
 export namespace CommandIDs {
   export const exportSTL = 'jupytercad:stl:export';
@@ -24,6 +25,7 @@ export function addCommands(
   const { commands } = app;
   commands.addCommand(CommandIDs.exportSTL, {
     label: trans.__('Export to STL'),
+    icon: exportIcon,
     isEnabled: () => Boolean(tracker.currentWidget),
     execute: Private.executeExportSTL(tracker)
   });
@@ -43,7 +45,10 @@ namespace Private {
           : (objects[0]?.name ?? '');
       return {
         Name: selectedObjectName ? `${selectedObjectName}_STL` : 'STL_Export',
-        Object: selectedObjectName
+        Object: selectedObjectName,
+        Quality: 'ultra',
+        LinearDeflection: 0.001,
+        AngularDeflection: 0.05
       };
     },
     syncData: (model: IJupyterCadModel) => {
@@ -96,7 +101,6 @@ namespace Private {
       const formJsonSchema = JSON.parse(JSON.stringify(formSchema));
       formJsonSchema['required'] = ['Name', ...formJsonSchema['required']];
 
-      // Get available objects for the dropdown
       const objects = current.model.getAllObject();
       const objectNames = objects.map(obj => obj.name);
 
@@ -105,7 +109,6 @@ namespace Private {
         ...formJsonSchema['properties']
       };
 
-      // Update the Object field with available options
       formJsonSchema['properties']['Object']['enum'] = objectNames;
 
       const { ...props } = formJsonSchema;

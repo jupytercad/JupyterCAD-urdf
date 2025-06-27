@@ -12,7 +12,6 @@ export class STLWorker implements IJCadWorker {
   constructor(options: STLWorker.IOptions) {
     console.log('STLWorker constructor called');
     this._tracker = options.tracker;
-    //this._ready.resolve();
   }
 
   shapeFormat = JCadWorkerSupportedFormat.STL;
@@ -62,13 +61,11 @@ export class STLWorker implements IJCadWorker {
     console.log(`Downloading STL for object: ${objectName}`);
     console.log(`STL content length: ${stlContent.length}`);
 
-    // Create a blob and download link
     const blob = new Blob([stlContent], {
       type: 'application/octet-stream'
     });
     const url = URL.createObjectURL(blob);
 
-    // Create download link and trigger download
     const link = document.createElement('a');
     link.href = url;
     link.download = `${objectName.toLowerCase().replace(/[^a-z0-9]/g, '_')}.stl`;
@@ -83,7 +80,6 @@ export class STLWorker implements IJCadWorker {
   }
 
   private _cleanupExportObject(exportObjectName: string): void {
-    // Get the current widget from the tracker
     const currentWidget = this._tracker.currentWidget;
     if (!currentWidget) {
       console.warn('No current widget found, cannot cleanup export object');

@@ -5,6 +5,26 @@
       "type": "string",
       "description": "The object to export to STL",
       "enum": []
+    },
+    "Quality": {
+      "type": "string",
+      "description": "STL export quality",
+      "enum": ["low", "medium", "high", "ultra"],
+      "default": "ultra"
+    },
+    "LinearDeflection": {
+      "type": "number",
+      "description": "Linear deflection (smaller = more triangles)",
+      "minimum": 0.0001,
+      "maximum": 1.0,
+      "default": 0.001
+    },
+    "AngularDeflection": {
+      "type": "number",
+      "description": "Angular deflection in radians",
+      "minimum": 0.01,
+      "maximum": 1.0,
+      "default": 0.05
     }
   },
   "required": ["Object"],
