@@ -8,15 +8,22 @@ import {
 import { PromiseDelegate } from '@lumino/coreutils';
 import { v4 as uuid } from 'uuid';
 
-export class STLWorker implements IJCadWorker {
-  constructor(options: STLWorker.IOptions) {
-    console.log('STLWorker constructor called');
+interface IExportJob {
+  files: { name: string; content: string }[];
+  total: number;
+  jcObjects: string[];
+}
+
+export class URDFWorker implements IJCadWorker {
+  constructor(options: URDFWorker.IOptions) {
     this._tracker = options.tracker;
   }
 
   shapeFormat = JCadWorkerSupportedFormat.STL;
+  private _jobs = new Map<string, IExportJob>();
 
   get ready(): Promise<void> {
+    this._ready.resolve();
     return this._ready.promise;
   }
 
@@ -24,85 +31,122 @@ export class STLWorker implements IJCadWorker {
     messageHandler: ((msg: any) => void) | ((msg: any) => Promise<void>);
     thisArg?: any;
   }): string {
-    const { messageHandler, thisArg } = options;
     const id = uuid();
-    if (thisArg) {
-      messageHandler.bind(thisArg);
-    }
-    this._messageHandlers.set(id, messageHandler);
+    // Not used in this implementation
     return id;
   }
 
   unregister(id: string): void {
-    this._messageHandlers.delete(id);
+    // Not used in this implementation
   }
 
   postMessage(msg: IWorkerMessageBase): void {
-    console.log('STLWorker received message:', msg);
-
     if (msg.action !== WorkerAction.POSTPROCESS) {
-      console.log('Not a POSTPROCESS action, ignoring');
       return;
     }
 
-    if (msg.payload && Object.keys(msg.payload).length > 0) {
-      const jCadObject = msg.payload['jcObject'];
-      const stlContent = msg.payload['postShape'];
+    const payload = msg.payload;
+    if (!payload || !payload.jcObject || !payload.postShape) {
+      return;
+    }
 
-      if (stlContent && typeof stlContent === 'string') {
-        this._downloadSTL(jCadObject.name, stlContent);
-      } else {
-        console.error('No STL content received for object:', jCadObject.name);
-      }
+    const { jcObject, postShape } = payload;
+    const { jobId, totalFiles, Object: objectName } = jcObject.parameters;
+
+    if (!jobId) {
+      return;
+    }
+
+    if (!this._jobs.has(jobId)) {
+      this._jobs.set(jobId, { files: [], total: totalFiles, jcObjects: [] });
+    }
+
+    const job = this._jobs.get(jobId)!;
+    const stlFileName = `${objectName}.stl`;
+    job.files.push({ name: stlFileName, content: postShape });
+    job.jcObjects.push(jcObject.name);
+
+    if (job.files.length === job.total) {
+      this._packageAndDownload(job.files);
+      this._cleanup(job.jcObjects);
+      this._jobs.delete(jobId);
     }
   }
 
-  private _downloadSTL(objectName: string, stlContent: string): void {
-    console.log(`Downloading STL for object: ${objectName}`);
-    console.log(`STL content length: ${stlContent.length}`);
-
-    const blob = new Blob([stlContent], {
-      type: 'application/octet-stream'
-    });
+  private _downloadBlob(blob: Blob, fileName: string): void {
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${objectName.toLowerCase().replace(/[^a-z0-9]/g, '_')}.stl`;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-
-    console.log(`STL file exported successfully: ${link.download}`);
-
-    this._cleanupExportObject(objectName);
   }
 
-  private _cleanupExportObject(exportObjectName: string): void {
+  private _packageAndDownload(
+    files: { name: string; content: string }[]
+  ): void {
+    // NOTE: This will trigger a separate download for the URDF file and each mesh.
+    // Your browser may ask for permission for each file.
+
+    // 1. Generate and download the URDF file itself.
+    const urdfContent = this._generateUrdf(files);
+    const urdfBlob = new Blob([urdfContent], { type: 'application/xml' });
+    this._downloadBlob(urdfBlob, 'robot.urdf');
+
+    // 2. Download each STL mesh file.
+    for (const file of files) {
+      const stlBlob = new Blob([file.content], {
+        type: 'application/octet-stream'
+      });
+      this._downloadBlob(stlBlob, file.name);
+    }
+  }
+
+  private _generateUrdf(files: { name: string; content: string }[]): string {
+    let links = '';
+    for (const file of files) {
+      const linkName = file.name.replace('.stl', '');
+      links += `
+      <link name="${linkName}">
+        <visual>
+          <geometry>
+            <mesh filename="package://meshes/${file.name}" />
+          </geometry>
+        </visual>
+        <collision>
+          <geometry>
+            <mesh filename="package://meshes/${file.name}" />
+          </geometry>
+        </collision>
+      </link>`;
+    }
+    return `<robot name="myrobot">${links}\n</robot>`;
+  }
+
+  private _cleanup(objectNames: string[]): void {
     const currentWidget = this._tracker.currentWidget;
     if (!currentWidget) {
-      console.warn('No current widget found, cannot cleanup export object');
       return;
     }
-
-    const model = currentWidget.model;
-    const sharedModel = model.sharedModel;
-
-    if (sharedModel && sharedModel.objectExists(exportObjectName)) {
+    const sharedModel = currentWidget.model.sharedModel;
+    if (sharedModel) {
       sharedModel.transact(() => {
-        sharedModel.removeObjectByName(exportObjectName);
-        console.log(`Cleaned up export object: ${exportObjectName}`);
+        for (const name of objectNames) {
+          if (sharedModel.objectExists(name)) {
+            sharedModel.removeObjectByName(name);
+          }
+        }
       });
     }
   }
 
   private _ready = new PromiseDelegate<void>();
-  private _messageHandlers = new Map();
   private _tracker: IJupyterCadTracker;
 }
 
-export namespace STLWorker {
+export namespace URDFWorker {
   export interface IOptions {
     tracker: IJupyterCadTracker;
   }

@@ -1,4 +1,4 @@
-import { FormDialog } from '@jupytercad/base';
+import { FormDialog, newName } from '@jupytercad/base';
 import {
   IDict,
   IJCadObject,
@@ -9,11 +9,12 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
+import { v4 as uuid } from 'uuid';
 import formSchema from './schema.json';
 import { exportIcon } from './icon';
 
 export namespace CommandIDs {
-  export const exportSTL = 'jupytercad:stl:export';
+  export const exportUrdf = 'jupytercad:urdf:export';
 }
 
 export function addCommands(
@@ -23,101 +24,100 @@ export function addCommands(
 ) {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
-  commands.addCommand(CommandIDs.exportSTL, {
-    label: trans.__('Export to STL'),
+  commands.addCommand(CommandIDs.exportUrdf, {
+    label: trans.__('Export to URDF'),
     icon: exportIcon,
     isEnabled: () => Boolean(tracker.currentWidget),
-    execute: Private.executeExportSTL(tracker)
+    execute: Private.executeExportURDF(tracker)
   });
 }
 
 namespace Private {
-  const stlOperator = {
-    title: 'Export to STL',
-    shape: 'Post::ExportSTL',
+  const urdfOperator = {
+    title: 'Export to URDF',
+    shape: 'Post::ExportSTL', // We still use the same Post operator type
     default: (model: IJupyterCadModel) => {
-      const objects = model.getAllObject();
-      const selected = model.localState?.selected?.value || {};
-      const selectedObjectNames = Object.keys(selected);
-      const selectedObjectName =
-        selectedObjectNames.length > 0
-          ? selectedObjectNames[0]
-          : (objects[0]?.name ?? '');
       return {
-        Name: selectedObjectName ? `${selectedObjectName}_STL` : 'STL_Export',
-        Object: selectedObjectName,
-        Quality: 'ultra',
-        LinearDeflection: 0.001,
+        Name: newName('URDF_Export', model),
+        LinearDeflection: 0.01,
         AngularDeflection: 0.05
       };
     },
     syncData: (model: IJupyterCadModel) => {
       return (props: IDict) => {
         const { Name, ...parameters } = props;
-        console.log(
-          'JCadWorkerSupportedFormat.STL value:',
-          JCadWorkerSupportedFormat.STL
-        );
-        console.log(
-          'All JCadWorkerSupportedFormat values:',
-          JCadWorkerSupportedFormat
-        );
-        const objectModel = {
-          shape: 'Post::ExportSTL',
-          parameters,
-          visible: true,
-          name: Name,
-          shapeMetadata: {
-            shapeFormat: JCadWorkerSupportedFormat.STL,
-            workerId: 'jupytercad-stl:worker'
-          }
-        };
-        console.log('Created objectModel:', objectModel);
         const sharedModel = model.sharedModel;
-        if (sharedModel) {
-          sharedModel.transact(() => {
-            if (!sharedModel.objectExists(objectModel.name)) {
-              sharedModel.addObject(objectModel as IJCadObject);
-            } else {
-              showErrorMessage(
-                'The object already exists',
-                'There is an existing object with the same name.'
-              );
-            }
-          });
+        if (!sharedModel) {
+          return;
         }
+
+        const objectsToExport = model
+          .getAllObject()
+          .filter(obj => obj.shape && !obj.shape.startsWith('Post::'));
+
+        if (objectsToExport.length === 0) {
+          showErrorMessage(
+            'No objects to export',
+            'The document has no geometric shapes to export.'
+          );
+          return;
+        }
+
+        const jobId = uuid();
+        const exportObjects: IJCadObject[] = [];
+
+        for (const object of objectsToExport) {
+          const exportObjectName = newName(`${object.name}_STL_Export`, model);
+          const objectModel = {
+            shape: 'Post::ExportSTL',
+            parameters: {
+              ...parameters,
+              Object: object.name,
+              // Add metadata for the worker to track this job
+              jobId,
+              totalFiles: objectsToExport.length
+            },
+            visible: false, // Hide these temporary objects
+            name: exportObjectName,
+            shapeMetadata: {
+              shapeFormat: JCadWorkerSupportedFormat.STL,
+              workerId: 'jupytercad-urdf:worker' // Point to our new worker
+            }
+          };
+          exportObjects.push(objectModel as IJCadObject);
+        }
+
+        sharedModel.transact(() => {
+          for (const obj of exportObjects) {
+            if (!sharedModel.objectExists(obj.name)) {
+              sharedModel.addObject(obj);
+            }
+          }
+        });
       };
     }
   };
 
-  export function executeExportSTL(tracker: IJupyterCadTracker) {
+  export function executeExportURDF(tracker: IJupyterCadTracker) {
     return async (args: any) => {
       const current = tracker.currentWidget;
-
       if (!current) {
         return;
       }
 
       const formJsonSchema = JSON.parse(JSON.stringify(formSchema));
       formJsonSchema['required'] = ['Name', ...formJsonSchema['required']];
-
-      const objects = current.model.getAllObject();
-      const objectNames = objects.map(obj => obj.name);
-
       formJsonSchema['properties'] = {
-        Name: { type: 'string', description: 'The Name of the Export Object' },
+        Name: { type: 'string', description: 'The Name of the export job' },
         ...formJsonSchema['properties']
       };
 
-      formJsonSchema['properties']['Object']['enum'] = objectNames;
-
-      const { ...props } = formJsonSchema;
       const dialog = new FormDialog({
         model: current.model,
-        title: stlOperator.title,
-        sourceData: stlOperator.default(current.model),
-        schema: props,
-        syncData: stlOperator.syncData(current.model),
+        title: urdfOperator.title,
+        sourceData: urdfOperator.default(current.model),
+        schema: formJsonSchema,
+        syncData: urdfOperator.syncData(current.model),
         cancelButton: true
       });
       await dialog.launch();
