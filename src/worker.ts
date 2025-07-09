@@ -11,7 +11,7 @@ import { generateUrdf } from './urdf'; // Import the new function
 
 interface IExportJob {
   primitives: { name: string; shape: string; params: any }[];
-  meshes: { name: string; content: string }[];
+  meshes: { name: string; content: string; params: any }[]; // Add params for material
   total: number;
   received: number;
   jcObjects: string[];
@@ -88,7 +88,12 @@ export class URDFWorker implements IJCadWorker {
         params: JSON.parse(shapeParams as string)
       });
     } else {
-      job.meshes.push({ name: `${objectName}.stl`, content: postShape });
+      // Pass the original object parameters along with the mesh content
+      job.meshes.push({
+        name: `${objectName}.stl`,
+        content: postShape,
+        params: jcObject.parameters
+      });
     }
 
     if (job.received === job.total) {
@@ -111,7 +116,7 @@ export class URDFWorker implements IJCadWorker {
 
   private _packageAndDownload(
     primitives: { name: string; shape: string; params: any }[],
-    meshes: { name: string; content: string }[]
+    meshes: { name: string; content: string; params: any }[]
   ): void {
     // NOTE: This will trigger a separate download for the URDF file and each mesh.
     // Your browser may ask for permission for each file.
