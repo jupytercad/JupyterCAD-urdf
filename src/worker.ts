@@ -7,10 +7,13 @@ import {
 } from '@jupytercad/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { v4 as uuid } from 'uuid';
+import { generateUrdf } from './urdf'; // Import the new function
 
 interface IExportJob {
-  files: { name: string; content: string }[];
+  primitives: { name: string; shape: string; params: any }[];
+  meshes: { name: string; content: string }[];
   total: number;
+  received: number;
   jcObjects: string[];
 }
 
@@ -51,23 +54,45 @@ export class URDFWorker implements IJCadWorker {
     }
 
     const { jcObject, postShape } = payload;
-    const { jobId, totalFiles, Object: objectName } = jcObject.parameters;
+    const {
+      jobId,
+      totalFiles,
+      Object: objectName,
+      isPrimitive,
+      shape,
+      shapeParams
+    } = jcObject.parameters;
 
     if (!jobId) {
       return;
     }
 
     if (!this._jobs.has(jobId)) {
-      this._jobs.set(jobId, { files: [], total: totalFiles, jcObjects: [] });
+      this._jobs.set(jobId, {
+        primitives: [],
+        meshes: [],
+        total: totalFiles,
+        received: 0,
+        jcObjects: []
+      });
     }
 
     const job = this._jobs.get(jobId)!;
-    const stlFileName = `${objectName}.stl`;
-    job.files.push({ name: stlFileName, content: postShape });
+    job.received++;
     job.jcObjects.push(jcObject.name);
 
-    if (job.files.length === job.total) {
-      this._packageAndDownload(job.files);
+    if (isPrimitive) {
+      job.primitives.push({
+        name: objectName as string,
+        shape: shape as string,
+        params: JSON.parse(shapeParams as string)
+      });
+    } else {
+      job.meshes.push({ name: `${objectName}.stl`, content: postShape });
+    }
+
+    if (job.received === job.total) {
+      this._packageAndDownload(job.primitives, job.meshes);
       this._cleanup(job.jcObjects);
       this._jobs.delete(jobId);
     }
@@ -85,18 +110,19 @@ export class URDFWorker implements IJCadWorker {
   }
 
   private _packageAndDownload(
-    files: { name: string; content: string }[]
+    primitives: { name: string; shape: string; params: any }[],
+    meshes: { name: string; content: string }[]
   ): void {
     // NOTE: This will trigger a separate download for the URDF file and each mesh.
     // Your browser may ask for permission for each file.
 
     // 1. Generate and download the URDF file itself.
-    const urdfContent = this._generateUrdf(files);
+    const urdfContent = generateUrdf(primitives, meshes); // Use the new function
     const urdfBlob = new Blob([urdfContent], { type: 'application/xml' });
     this._downloadBlob(urdfBlob, 'robot.urdf');
 
     // 2. Download each STL mesh file.
-    for (const file of files) {
+    for (const file of meshes) {
       const stlBlob = new Blob([file.content], {
         type: 'application/octet-stream'
       });
@@ -104,26 +130,7 @@ export class URDFWorker implements IJCadWorker {
     }
   }
 
-  private _generateUrdf(files: { name: string; content: string }[]): string {
-    let links = '';
-    for (const file of files) {
-      const linkName = file.name.replace('.stl', '');
-      links += `
-      <link name="${linkName}">
-        <visual>
-          <geometry>
-            <mesh filename="package://meshes/${file.name}" />
-          </geometry>
-        </visual>
-        <collision>
-          <geometry>
-            <mesh filename="package://meshes/${file.name}" />
-          </geometry>
-        </collision>
-      </link>`;
-    }
-    return `<robot name="myrobot">${links}\n</robot>`;
-  }
+  // This function is now gone from the worker!
 
   private _cleanup(objectNames: string[]): void {
     const currentWidget = this._tracker.currentWidget;

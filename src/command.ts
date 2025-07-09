@@ -65,23 +65,42 @@ namespace Private {
 
         const jobId = uuid();
         const exportObjects: IJCadObject[] = [];
+        const filePath = model.filePath; // Get the current file path
+        const primitiveShapes = ['Part::Box', 'Part::Cylinder', 'Part::Sphere'];
 
         for (const object of objectsToExport) {
+          const isPrimitive =
+            object.shape !== undefined &&
+            primitiveShapes.includes(object.shape);
+
+          // We still create a Post::ExportSTL object for every shape.
+          // For primitives, the worker will simply ignore the generated STL
+          // and use the parameters we pass here instead.
+          const specificParams = {
+            isPrimitive,
+            // Pass primitive info only if it is one
+            ...(isPrimitive && {
+              shape: object.shape,
+              shapeParams: JSON.stringify(object.parameters)
+            })
+          };
+
           const exportObjectName = newName(`${object.name}_STL_Export`, model);
           const objectModel = {
             shape: 'Post::ExportSTL',
             parameters: {
               ...parameters,
               Object: object.name,
-              // Add metadata for the worker to track this job
               jobId,
-              totalFiles: objectsToExport.length
+              totalFiles: objectsToExport.length,
+              filePath,
+              ...specificParams // Add our new primitive-identifying parameters
             },
             visible: false, // Hide these temporary objects
             name: exportObjectName,
             shapeMetadata: {
               shapeFormat: JCadWorkerSupportedFormat.STL,
-              workerId: 'jupytercad-urdf:worker' // Point to our new worker
+              workerId: 'jupytercad-urdf:worker'
             }
           };
           exportObjects.push(objectModel as IJCadObject);
