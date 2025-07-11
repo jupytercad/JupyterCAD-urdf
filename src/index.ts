@@ -18,6 +18,7 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { CommandIDs, addCommands } from './command';
 import formSchema from './schema.json';
 import { URDFWorker } from './worker';
+import { Contents } from '@jupyterlab/services';
 
 /**
  * Initialization data for the jupytercad-urdf extension.
@@ -48,7 +49,15 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator = translator ?? nullTranslator;
 
     const WORKER_ID = 'jupytercad-urdf:worker';
-    const worker = new URDFWorker({ tracker });
+    // Get the stable ContentsManager from the app's service manager
+    const contentsManager = app.serviceManager.contents;
+    console.log(
+      'DEBUG: [index.ts] Got ContentsManager during activation:',
+      contentsManager
+    );
+
+    // Pass it to the worker's constructor
+    const worker = new URDFWorker({ tracker, contentsManager });
 
     // We still need to register the worker and the schema for the Post objects
     workerRegistry.registerWorker(WORKER_ID, worker);
@@ -63,3 +72,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
 };
 
 export default plugin;
+
+export interface IOptions {
+  tracker: IJupyterCadTracker;
+  contentsManager: Contents.IManager;
+}

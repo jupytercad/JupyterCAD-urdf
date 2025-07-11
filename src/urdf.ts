@@ -51,7 +51,8 @@ function axisAngleToRpy(
  */
 export function generateUrdf(
   primitives: { name: string; shape: string; params: any }[],
-  meshes: { name: string; content: string; params: any }[]
+  meshes: { name: string; content: string; params: any }[],
+  robotName: string
 ): string {
   let links = '';
   let materials = '';
@@ -135,5 +136,5 @@ export function generateUrdf(
   </link>
   `;
   }
-  return `<robot name="myrobot">${materials}${links}\n</robot>`;
+  return `<robot name="${robotName}">${materials}${links}\n</robot>`;
 }

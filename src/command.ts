@@ -66,6 +66,10 @@ namespace Private {
         const jobId = uuid();
         const exportObjects: IJCadObject[] = [];
         const filePath = model.filePath; // Get the current file path
+        console.log(
+          'DEBUG: [command.ts] Captured filePath for export job:',
+          filePath
+        );
         const primitiveShapes = ['Part::Box', 'Part::Cylinder', 'Part::Sphere'];
 
         for (const object of objectsToExport) {
@@ -94,7 +98,7 @@ namespace Private {
               jobId,
               totalFiles: objectsToExport.length,
               filePath,
-              ...specificParams // Add our new primitive-identifying parameters
+              ...specificParams
             },
             visible: false, // Hide these temporary objects
             name: exportObjectName,

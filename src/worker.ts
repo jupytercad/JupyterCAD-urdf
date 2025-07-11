@@ -5,21 +5,25 @@ import {
   JCadWorkerSupportedFormat,
   WorkerAction
 } from '@jupytercad/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { Contents } from '@jupyterlab/services';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { v4 as uuid } from 'uuid';
-import { generateUrdf } from './urdf'; // Import the new function
+import { generateUrdf } from './urdf';
 
 interface IExportJob {
   primitives: { name: string; shape: string; params: any }[];
-  meshes: { name: string; content: string; params: any }[]; // Add params for material
+  meshes: { name: string; content: string; params: any }[];
   total: number;
   received: number;
   jcObjects: string[];
+  filePath: string;
 }
 
 export class URDFWorker implements IJCadWorker {
   constructor(options: URDFWorker.IOptions) {
     this._tracker = options.tracker;
+    this._contentsManager = options.contentsManager;
   }
 
   shapeFormat = JCadWorkerSupportedFormat.STL;
@@ -35,12 +39,11 @@ export class URDFWorker implements IJCadWorker {
     thisArg?: any;
   }): string {
     const id = uuid();
-    // Not used in this implementation
     return id;
   }
 
   unregister(id: string): void {
-    // Not used in this implementation
+    // Not used
   }
 
   postMessage(msg: IWorkerMessageBase): void {
@@ -60,10 +63,11 @@ export class URDFWorker implements IJCadWorker {
       Object: objectName,
       isPrimitive,
       shape,
-      shapeParams
+      shapeParams,
+      filePath
     } = jcObject.parameters;
 
-    if (!jobId) {
+    if (!jobId || !filePath) {
       return;
     }
 
@@ -73,7 +77,8 @@ export class URDFWorker implements IJCadWorker {
         meshes: [],
         total: totalFiles,
         received: 0,
-        jcObjects: []
+        jcObjects: [],
+        filePath: filePath as string
       });
     }
 
@@ -88,7 +93,6 @@ export class URDFWorker implements IJCadWorker {
         params: JSON.parse(shapeParams as string)
       });
     } else {
-      // Pass the original object parameters along with the mesh content
       job.meshes.push({
         name: `${objectName}.stl`,
         content: postShape,
@@ -97,45 +101,83 @@ export class URDFWorker implements IJCadWorker {
     }
 
     if (job.received === job.total) {
-      this._packageAndDownload(job.primitives, job.meshes);
+      this._packageAndSave(job);
       this._cleanup(job.jcObjects);
       this._jobs.delete(jobId);
     }
   }
 
-  private _downloadBlob(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
+  private async _packageAndSave(job: IExportJob): Promise<void> {
+    const { primitives, meshes, filePath } = job;
 
-  private _packageAndDownload(
-    primitives: { name: string; shape: string; params: any }[],
-    meshes: { name: string; content: string; params: any }[]
-  ): void {
-    // NOTE: This will trigger a separate download for the URDF file and each mesh.
-    // Your browser may ask for permission for each file.
+    const contentsManager = this._contentsManager;
+    if (!contentsManager) {
+      console.error(
+        'FATAL: [worker.ts] ContentsManager was not provided to the worker.'
+      );
+      showErrorMessage(
+        'URDF Export Failed',
+        'ContentsManager not available in worker.'
+      );
+      return;
+    }
 
-    // 1. Generate and download the URDF file itself.
-    const urdfContent = generateUrdf(primitives, meshes); // Use the new function
-    const urdfBlob = new Blob([urdfContent], { type: 'application/xml' });
-    this._downloadBlob(urdfBlob, 'robot.urdf');
+    const pathParts = filePath.split('/');
+    const docName = pathParts.pop() || 'untitled.jcad';
+    const baseName = docName.substring(0, docName.lastIndexOf('.'));
+    const dirPath = pathParts.join('/');
 
-    // 2. Download each STL mesh file.
-    for (const file of meshes) {
-      const stlBlob = new Blob([file.content], {
-        type: 'application/octet-stream'
+    const exportDirName = baseName;
+    const exportDirPath = dirPath
+      ? `${dirPath}/${exportDirName}`
+      : exportDirName;
+
+    const urdfFileName = `${baseName}.urdf`;
+    const urdfPath = `${exportDirPath}/${urdfFileName}`;
+    const meshesDirPath = `${exportDirPath}/meshes`;
+
+    try {
+      try {
+        await contentsManager.get(exportDirPath);
+      } catch (e) {
+        await contentsManager
+          .newUntitled({ path: dirPath, type: 'directory' })
+          .then((model: Contents.IModel) =>
+            contentsManager.rename(model.path, exportDirPath)
+          );
+      }
+
+      if (meshes.length > 0) {
+        await contentsManager
+          .newUntitled({ path: exportDirPath, type: 'directory' })
+          .then((model: Contents.IModel) =>
+            contentsManager.rename(model.path, meshesDirPath)
+          );
+      }
+
+      const urdfContent = generateUrdf(primitives, meshes, baseName);
+      await contentsManager.save(urdfPath, {
+        type: 'file',
+        format: 'text',
+        content: urdfContent
       });
-      this._downloadBlob(stlBlob, file.name);
+
+      for (const file of meshes) {
+        const stlPath = `${meshesDirPath}/${file.name}`;
+        await contentsManager.save(stlPath, {
+          type: 'file',
+          format: 'text',
+          content: file.content
+        });
+      }
+    } catch (error) {
+      console.error(
+        'ERROR: [worker.ts] Failed during file save operation:',
+        error
+      );
+      showErrorMessage('URDF Export Failed', error as string);
     }
   }
-
-  // This function is now gone from the worker!
 
   private _cleanup(objectNames: string[]): void {
     const currentWidget = this._tracker.currentWidget;
@@ -156,10 +198,12 @@ export class URDFWorker implements IJCadWorker {
 
   private _ready = new PromiseDelegate<void>();
   private _tracker: IJupyterCadTracker;
+  private _contentsManager: Contents.IManager;
 }
 
 export namespace URDFWorker {
   export interface IOptions {
     tracker: IJupyterCadTracker;
+    contentsManager: Contents.IManager;
   }
 }
