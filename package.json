@@ -59,11 +59,11 @@
     "dependencies": {
         "@jupyter/collaboration": "^3.1.2",
         "@jupyter/docprovider": "^4.0.2",
-        "@jupytercad/base": "file:.yalc/@jupytercad/base",
-        "@jupytercad/jupytercad-core": "^3.0.0",
-        "@jupytercad/occ-worker": "file:.yalc/@jupytercad/occ-worker",
-        "@jupytercad/opencascade": "file:.yalc/@jupytercad/opencascade",
-        "@jupytercad/schema": "file:.yalc/@jupytercad/schema",
+        "@jupytercad/base": "^3.1.5",
+        "@jupytercad/jupytercad-core": "^3.1.5",
+        "@jupytercad/occ-worker": "^3.1.5",
+        "@jupytercad/opencascade": "^3.1.5",
+        "@jupytercad/schema": "^3.1.5",
         "@jupyterlab/application": "^4.0.0",
         "@jupyterlab/apputils": "^4.5.3",
         "@jupyterlab/settingregistry": "^4.0.0",
@@ -112,8 +112,7 @@
     "resolutions": {
         "@jupyter/docprovider": "^3.1.2",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "@jupytercad/schema": "file:.yalc/@jupytercad/schema"
+        "react-dom": "^18.2.0"
     },
     "sideEffects": [
         "style/*.css",
