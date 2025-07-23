@@ -1,7 +1,7 @@
 import { LabIcon } from '@jupyterlab/ui-components';
-import exportIconStr from '../style/icon/export.svg';
+import exportIconStr from '../style/icon/export-urdf.svg';
 
 export const exportIcon = new LabIcon({
-  name: 'jupytercad:grid-icon',
+  name: 'jupytercad:urdf-icon',
   svgstr: exportIconStr
 });

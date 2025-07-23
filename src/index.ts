@@ -49,19 +49,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator = translator ?? nullTranslator;
 
     const WORKER_ID = 'jupytercad-urdf:worker';
-    // Get the stable ContentsManager from the app's service manager
     const contentsManager = app.serviceManager.contents;
-    console.log(
-      'DEBUG: [index.ts] Got ContentsManager during activation:',
-      contentsManager
-    );
-
-    // Pass it to the worker's constructor
     const worker = new URDFWorker({ tracker, contentsManager });
 
-    // We still need to register the worker and the schema for the Post objects
     workerRegistry.registerWorker(WORKER_ID, worker);
-    schemaRegistry.registerSchema('Post::ExportSTL', formSchema);
+    schemaRegistry.registerSchema('Post::ExportURDF', formSchema);
 
     addCommands(app, tracker, translator);
     externalCommandRegistry.registerCommand({

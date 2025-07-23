@@ -42,9 +42,7 @@ export class URDFWorker implements IJCadWorker {
     return id;
   }
 
-  unregister(id: string): void {
-    // Not used
-  }
+  unregister(id: string): void {}
 
   postMessage(msg: IWorkerMessageBase): void {
     if (msg.action !== WorkerAction.POSTPROCESS) {
@@ -137,6 +135,7 @@ export class URDFWorker implements IJCadWorker {
     const meshesDirPath = `${exportDirPath}/meshes`;
 
     try {
+      // Create main export directory if it doesn't exist
       try {
         await contentsManager.get(exportDirPath);
       } catch (e) {
@@ -147,14 +146,20 @@ export class URDFWorker implements IJCadWorker {
           );
       }
 
+      // Create meshes directory if needed and it doesn't exist
       if (meshes.length > 0) {
-        await contentsManager
-          .newUntitled({ path: exportDirPath, type: 'directory' })
-          .then((model: Contents.IModel) =>
-            contentsManager.rename(model.path, meshesDirPath)
-          );
+        try {
+          await contentsManager.get(meshesDirPath);
+        } catch (e) {
+          await contentsManager
+            .newUntitled({ path: exportDirPath, type: 'directory' })
+            .then((model: Contents.IModel) =>
+              contentsManager.rename(model.path, meshesDirPath)
+            );
+        }
       }
 
+      // Save or overwrite the URDF file
       const urdfContent = generateUrdf(primitives, meshes, baseName);
       await contentsManager.save(urdfPath, {
         type: 'file',
@@ -162,6 +167,7 @@ export class URDFWorker implements IJCadWorker {
         content: urdfContent
       });
 
+      // Save or overwrite mesh files
       for (const file of meshes) {
         const stlPath = `${meshesDirPath}/${file.name}`;
         await contentsManager.save(stlPath, {

@@ -1,5 +1,5 @@
 /**
- * A collection of utility functions for generating URDF files.
+ * Utility functions for generating URDF files.
  */
 
 /**
@@ -47,7 +47,7 @@ function axisAngleToRpy(
 }
 
 /**
- * Generates the complete URDF XML string from primitives and meshes.
+ * Generates the URDF XML string from primitives and meshes.
  */
 export function generateUrdf(
   primitives: { name: string; shape: string; params: any }[],
@@ -56,6 +56,7 @@ export function generateUrdf(
 ): string {
   let links = '';
   let materials = '';
+  // Map to store color to material mappings
   const materialMap = new Map<string, string>();
   let materialIndex = 0;
 

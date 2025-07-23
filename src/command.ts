@@ -35,17 +35,16 @@ export function addCommands(
 namespace Private {
   const urdfOperator = {
     title: 'Export to URDF',
-    shape: 'Post::ExportSTL', // We still use the same Post operator type
+    shape: 'Post::ExportURDF',
     default: (model: IJupyterCadModel) => {
       return {
-        Name: newName('URDF_Export', model),
         LinearDeflection: 0.01,
         AngularDeflection: 0.05
       };
     },
     syncData: (model: IJupyterCadModel) => {
       return (props: IDict) => {
-        const { Name, ...parameters } = props;
+        const { ...parameters } = props;
         const sharedModel = model.sharedModel;
         if (!sharedModel) {
           return;
@@ -65,11 +64,7 @@ namespace Private {
 
         const jobId = uuid();
         const exportObjects: IJCadObject[] = [];
-        const filePath = model.filePath; // Get the current file path
-        console.log(
-          'DEBUG: [command.ts] Captured filePath for export job:',
-          filePath
-        );
+        const filePath = model.filePath;
         const primitiveShapes = ['Part::Box', 'Part::Cylinder', 'Part::Sphere'];
 
         for (const object of objectsToExport) {
@@ -77,9 +72,6 @@ namespace Private {
             object.shape !== undefined &&
             primitiveShapes.includes(object.shape);
 
-          // We still create a Post::ExportSTL object for every shape.
-          // For primitives, the worker will simply ignore the generated STL
-          // and use the parameters we pass here instead.
           const specificParams = {
             isPrimitive,
             // Pass primitive info only if it is one
@@ -100,7 +92,7 @@ namespace Private {
               filePath,
               ...specificParams
             },
-            visible: false, // Hide these temporary objects
+            visible: false,
             name: exportObjectName,
             shapeMetadata: {
               shapeFormat: JCadWorkerSupportedFormat.STL,
@@ -128,18 +120,11 @@ namespace Private {
         return;
       }
 
-      const formJsonSchema = JSON.parse(JSON.stringify(formSchema));
-      formJsonSchema['required'] = ['Name', ...formJsonSchema['required']];
-      formJsonSchema['properties'] = {
-        Name: { type: 'string', description: 'The Name of the export job' },
-        ...formJsonSchema['properties']
-      };
-
       const dialog = new FormDialog({
         model: current.model,
         title: urdfOperator.title,
         sourceData: urdfOperator.default(current.model),
-        schema: formJsonSchema,
+        schema: formSchema,
         syncData: urdfOperator.syncData(current.model),
         cancelButton: true
       });
