@@ -15,6 +15,7 @@ To install the extension, execute:
 ```bash
 pip install jupytercad_urdf
 ```
+
 ## Usage
 
 When opening a jcad file, you'll see that a new icon has been added to the JupyterCAD UI. Click that button to export the open jcad file as a urdf file and you will get a folder with the same name that contains the urdf and optionally a 'meshes' subfolder with the necessary STL files.

@@ -138,7 +138,7 @@ export class URDFWorker implements IJCadWorker {
       // Create main export directory if it doesn't exist
       try {
         await contentsManager.get(exportDirPath);
-      } catch (e) {
+      } catch {
         await contentsManager
           .newUntitled({ path: dirPath, type: 'directory' })
           .then((model: Contents.IModel) =>
@@ -150,7 +150,7 @@ export class URDFWorker implements IJCadWorker {
       if (meshes.length > 0) {
         try {
           await contentsManager.get(meshesDirPath);
-        } catch (e) {
+        } catch {
           await contentsManager
             .newUntitled({ path: exportDirPath, type: 'directory' })
             .then((model: Contents.IModel) =>
