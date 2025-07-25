@@ -1,7 +1,5 @@
 # jupytercad_urdf
 
-[![Github Actions Status](https://github.com/Yahiewi/JupyterCAD-urdf.git/workflows/Build/badge.svg)](https://github.com/Yahiewi/JupyterCAD-urdf.git/actions/workflows/build.yml)
-
 A JupyterLab extension adding the feature of exporting jcad files to urdf.
 
 ## Requirements
