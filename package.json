@@ -66,6 +66,7 @@
         "@jupytercad/schema": "^3.1.5",
         "@jupyterlab/application": "^4.0.0",
         "@jupyterlab/apputils": "^4.5.3",
+        "@jupyterlab/services": "^7.4.5",
         "@jupyterlab/settingregistry": "^4.0.0",
         "@jupyterlab/translation": "^4.4.3",
         "@naisutech/react-tree": "^3.1.0",
