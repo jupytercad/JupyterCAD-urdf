@@ -2,7 +2,7 @@
 
 [![Github Actions Status](https://github.com/Yahiewi/JupyterCAD-urdf.git/workflows/Build/badge.svg)](https://github.com/Yahiewi/JupyterCAD-urdf.git/actions/workflows/build.yml)
 
-A JupyterLab extension adding features like exporting jcad files to urdf.
+A JupyterLab extension adding the feature of exporting jcad files to urdf.
 
 ## Requirements
 
@@ -15,6 +15,11 @@ To install the extension, execute:
 ```bash
 pip install jupytercad_urdf
 ```
+## Usage
+
+When opening a jcad file, you'll see that a new icon has been added to the JupyterCAD UI. Click that button to export the open jcad file as a urdf file and you will get a folder with the same name that contains the urdf and optionally a 'meshes' subfolder with the necessary STL files.
+
+![export_button](./images/export_button.png 'Export Button')
 
 ## Uninstall
 
