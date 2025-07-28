@@ -40,35 +40,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
     externalCommandRegistry: IJCadExternalCommandRegistry,
     translator?: ITranslator
   ) => {
-    try {
-      if (
-        !workerRegistry ||
-        !schemaRegistry ||
-        !tracker ||
-        !externalCommandRegistry
-      ) {
-        throw new Error('One or more required services are not available.');
-      }
-      console.log('JupyterLab extension jupytercad-urdf is activated!');
+    console.log('JupyterLab extension jupytercad-urdf is activated!');
 
-      translator = translator ?? nullTranslator;
+    translator = translator ?? nullTranslator;
 
-      const WORKER_ID = 'jupytercad-urdf:worker';
-      const contentsManager = app.serviceManager.contents;
-      const worker = new URDFWorker({ tracker, contentsManager });
+    const WORKER_ID = 'jupytercad-urdf:worker';
+    const contentsManager = app.serviceManager.contents;
+    const worker = new URDFWorker({ tracker, contentsManager });
 
-      workerRegistry.registerWorker(WORKER_ID, worker);
-      schemaRegistry.registerSchema('Post::ExportURDF', formSchema);
+    workerRegistry.registerWorker(WORKER_ID, worker);
+    schemaRegistry.registerSchema('Post::ExportURDF', formSchema);
 
-      addCommands(app, tracker, translator);
-      externalCommandRegistry.registerCommand({
-        name: 'Export to URDF',
-        id: CommandIDs.exportUrdf
-      });
-    } catch (error) {
-      console.error('jupytercad-urdf activation failed:', error);
-      throw error;
-    }
+    addCommands(app, tracker, translator);
+    externalCommandRegistry.registerCommand({
+      name: 'Export to URDF',
+      id: CommandIDs.exportUrdf
+    });
   }
 };
 
