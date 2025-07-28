@@ -7,9 +7,9 @@
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/Yahiewi/JupyterCAD-urdf.git",
+    "homepage": "https://github.com/jupytercad/JupyterCAD-urdf.git",
     "bugs": {
-        "url": "https://github.com/Yahiewi/JupyterCAD-urdf.git/issues"
+        "url": "https://github.com/jupytercad/JupyterCAD-urdf.git/issues"
     },
     "license": "BSD-3-Clause",
     "author": {
