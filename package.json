@@ -1,15 +1,15 @@
 {
     "name": "jupytercad-urdf",
     "version": "0.1.0",
-    "description": "A JupyterLab extension adding features like exporting jcad files to urdf.",
+    "description": "A JupyterCAD URDF export extension.",
     "keywords": [
         "jupyter",
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/jupytercad/JupyterCAD-urdf.git",
+    "homepage": "https://github.com/jupytercad/JupyterCAD-urdf",
     "bugs": {
-        "url": "https://github.com/jupytercad/JupyterCAD-urdf.git/issues"
+        "url": "https://github.com/jupytercad/JupyterCAD-urdf/issues"
     },
     "license": "BSD-3-Clause",
     "author": {
@@ -27,7 +27,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Yahiewi/JupyterCAD-urdf.git.git"
+        "url": "https://github.com/jupytercad/JupyterCAD-urdf.git"
     },
     "scripts": {
         "build": "jlpm build:lib && jlpm build:labextension:dev",
