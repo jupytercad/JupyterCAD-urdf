@@ -41,6 +41,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator?: ITranslator
   ) => {
     try {
+      if (
+        !workerRegistry ||
+        !schemaRegistry ||
+        !tracker ||
+        !externalCommandRegistry
+      ) {
+        throw new Error('One or more required services are not available.');
+      }
       console.log('JupyterLab extension jupytercad-urdf is activated!');
 
       translator = translator ?? nullTranslator;
