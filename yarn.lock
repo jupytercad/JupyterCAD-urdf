@@ -2224,6 +2224,62 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jupytercad/jupytercad-urdf@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@jupytercad/jupytercad-urdf@workspace:."
+  dependencies:
+    "@jupyter/collaboration": ^3.1.2
+    "@jupyter/docprovider": ^4.0.2
+    "@jupytercad/base": ^3.1.5
+    "@jupytercad/jupytercad-core": ^3.1.5
+    "@jupytercad/occ-worker": ^3.1.5
+    "@jupytercad/opencascade": ^3.1.5
+    "@jupytercad/schema": ^3.1.5
+    "@jupyterlab/application": ^4.0.0
+    "@jupyterlab/apputils": ^4.5.3
+    "@jupyterlab/builder": ^4.0.0
+    "@jupyterlab/services": ^7.4.5
+    "@jupyterlab/settingregistry": ^4.0.0
+    "@jupyterlab/testutils": ^4.0.0
+    "@jupyterlab/translation": ^4.4.3
+    "@naisutech/react-tree": ^3.1.0
+    "@rjsf/validator-ajv8": ^5.24.12
+    "@types/jest": ^29.2.0
+    "@types/json-schema": ^7.0.11
+    "@types/react": ^18.0.26
+    "@types/react-addons-linked-state-mixin": ^0.14.22
+    "@types/uuid": ^10.0.0
+    "@typescript-eslint/eslint-plugin": ^8.38.0
+    "@typescript-eslint/parser": ^8.38.0
+    css-loader: ^6.7.1
+    d3-color: ^3.1.0
+    eslint: ^8.36.0
+    eslint-config-prettier: ^8.8.0
+    eslint-plugin-prettier: ^5.0.0
+    jest: ^29.2.0
+    npm-run-all2: ^7.0.1
+    prettier: ^3.0.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    rimraf: ^5.0.1
+    source-map-loader: ^1.0.2
+    style-loader: ^3.3.1
+    styled-components: ^6.1.19
+    stylelint: ^15.10.1
+    stylelint-config-recommended: ^13.0.0
+    stylelint-config-standard: ^34.0.0
+    stylelint-csstree-validator: ^3.0.0
+    stylelint-prettier: ^4.0.0
+    three: ^0.177.0
+    three-mesh-bvh: ^0.9.0
+    typescript: ~5.0.2
+    uuid: ^11.1.0
+    yjs: ^13.5.0
+  peerDependencies:
+    "@jupytercad/schema": "*"
+  languageName: unknown
+  linkType: soft
+
 "@jupytercad/occ-worker@npm:^3.1.5":
   version: 3.1.5
   resolution: "@jupytercad/occ-worker@npm:3.1.5"
@@ -7740,62 +7796,6 @@ __metadata:
   checksum: 0b40f712900ad0c846681ea2db23b6684b9d5eedf55807b4708c656f5894b63507d0e28ae10aa1bddbea551241035afe62b6df0800fc94c2e2806a7f3adecd7c
   languageName: node
   linkType: hard
-
-"jupytercad-urdf@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "jupytercad-urdf@workspace:."
-  dependencies:
-    "@jupyter/collaboration": ^3.1.2
-    "@jupyter/docprovider": ^4.0.2
-    "@jupytercad/base": ^3.1.5
-    "@jupytercad/jupytercad-core": ^3.1.5
-    "@jupytercad/occ-worker": ^3.1.5
-    "@jupytercad/opencascade": ^3.1.5
-    "@jupytercad/schema": ^3.1.5
-    "@jupyterlab/application": ^4.0.0
-    "@jupyterlab/apputils": ^4.5.3
-    "@jupyterlab/builder": ^4.0.0
-    "@jupyterlab/services": ^7.4.5
-    "@jupyterlab/settingregistry": ^4.0.0
-    "@jupyterlab/testutils": ^4.0.0
-    "@jupyterlab/translation": ^4.4.3
-    "@naisutech/react-tree": ^3.1.0
-    "@rjsf/validator-ajv8": ^5.24.12
-    "@types/jest": ^29.2.0
-    "@types/json-schema": ^7.0.11
-    "@types/react": ^18.0.26
-    "@types/react-addons-linked-state-mixin": ^0.14.22
-    "@types/uuid": ^10.0.0
-    "@typescript-eslint/eslint-plugin": ^8.38.0
-    "@typescript-eslint/parser": ^8.38.0
-    css-loader: ^6.7.1
-    d3-color: ^3.1.0
-    eslint: ^8.36.0
-    eslint-config-prettier: ^8.8.0
-    eslint-plugin-prettier: ^5.0.0
-    jest: ^29.2.0
-    npm-run-all2: ^7.0.1
-    prettier: ^3.0.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    rimraf: ^5.0.1
-    source-map-loader: ^1.0.2
-    style-loader: ^3.3.1
-    styled-components: ^6.1.19
-    stylelint: ^15.10.1
-    stylelint-config-recommended: ^13.0.0
-    stylelint-config-standard: ^34.0.0
-    stylelint-csstree-validator: ^3.0.0
-    stylelint-prettier: ^4.0.0
-    three: ^0.177.0
-    three-mesh-bvh: ^0.9.0
-    typescript: ~5.0.2
-    uuid: ^11.1.0
-    yjs: ^13.5.0
-  peerDependencies:
-    "@jupytercad/schema": "*"
-  languageName: unknown
-  linkType: soft
 
 "keyv@npm:^4.5.3":
   version: 4.5.4
