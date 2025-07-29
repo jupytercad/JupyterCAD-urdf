@@ -1,5 +1,5 @@
 {
-    "name": "jupytercad-urdf",
+    "name": "@jupytercad/jupytercad-urdf",
     "version": "0.1.0",
     "description": "A JupyterCAD URDF export extension.",
     "keywords": [
