@@ -17,7 +17,6 @@ repos:
     hooks:
       - id: prettier
         entry: prettier --no-error-on-unmatched-pattern --write --ignore-unknown
-        types: [file]
 
   # ESLint for .ts/.tsx files
   - repo: https://github.com/pre-commit/mirrors-eslint
@@ -30,4 +29,5 @@ repos:
           - 'eslint@8.36.0'
           - '@typescript-eslint/eslint-plugin@5.55.0'
           - '@typescript-eslint/parser@5.55.0'
+          - 'eslint-plugin-react-hooks@4.6.2'
 
