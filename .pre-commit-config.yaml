@@ -1,3 +1,6 @@
+default_language_version:
+  node: system
+
 ci:
   autofix_prs: true
 
@@ -30,4 +33,5 @@ repos:
           - '@typescript-eslint/eslint-plugin@5.55.0'
           - '@typescript-eslint/parser@5.55.0'
           - 'eslint-plugin-react-hooks@4.6.2'
-
+          - 'eslint-plugin-prettier@5.0.0'
+          - 'eslint-config-prettier@9.0.0'
