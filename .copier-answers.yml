@@ -7,9 +7,9 @@ has_binder: false
 has_settings: true
 kind: frontend
 labextension_name: jupytercad-urdf
-project_short_description: A JupyterLab extension adding features like exporting jcad
-    files to urdf.
+project_short_description:
+  A JupyterLab extension adding features like exporting jcad
+  files to urdf.
 python_name: jupytercad_urdf
 repository: https://github.com/Yahiewi/JupyterCAD-urdf.git
 test: true
-

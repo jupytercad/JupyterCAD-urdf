@@ -42,7 +42,9 @@ export class URDFWorker implements IJCadWorker {
     return id;
   }
 
-  unregister(id: string): void {}
+  unregister(id: string): void {
+    // empty
+  }
 
   postMessage(msg: IWorkerMessageBase): void {
     if (msg.action !== WorkerAction.POSTPROCESS) {
