@@ -14,7 +14,7 @@
       <material name="mat_0"/>
     </visual>
   </link>
-  
+
   <link name="box2">
     <visual>
       <geometry>
@@ -24,14 +24,14 @@
       <material name="mat_1"/>
     </visual>
   </link>
-  
+
   <link name="Cone 1">
     <visual>
       <geometry>
         <mesh filename="package://meshes/Cone 1.stl" />
       </geometry>
-      
+
     </visual>
   </link>
-  
+
 </robot>
