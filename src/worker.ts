@@ -52,7 +52,7 @@ export class URDFWorker implements IJCadWorker {
     }
 
     const payload = msg.payload;
-    if (!payload || !payload.jcObject || !payload.postShape) {
+    if (!payload || !payload.jcObject || payload.postShape === undefined) {
       return;
     }
 

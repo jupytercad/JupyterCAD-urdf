@@ -1,0 +1,120 @@
+<robot name="niryo_doppelganger">
+  <material name="mat_0">
+    <color rgba="0.00 0.30 0.70 1.0"/>
+  </material>
+  <material name="mat_1">
+    <color rgba="0.00 0.00 0.00 1.0"/>
+  </material>
+  <material name="mat_2">
+    <color rgba="0.00 0.16 0.80 1.0"/>
+  </material>
+  <material name="mat_3">
+    <color rgba="0.50 0.50 0.50 1.0"/>
+  </material>
+  <material name="mat_4">
+    <color rgba="0.00 0.48 1.00 1.0"/>
+  </material>
+  <material name="mat_5">
+    <color rgba="0.00 0.16 1.00 1.0"/>
+  </material>
+  <link name="base_link">
+    <visual>
+      <geometry>
+      <box size="0.25 0.25 0.15"/>
+      </geometry>
+      <origin xyz="-0.12566107053272152 -0.12750502601483663 0" rpy="0 0 0" />
+      <material name="mat_0"/>
+    </visual>
+  </link>
+  
+  <link name="shoulder_juncture">
+    <visual>
+      <geometry>
+      <cylinder radius="0.11" length="0.03"/>
+      </geometry>
+      <origin xyz="0 0 0.015" rpy="0 0 0" />
+      <material name="mat_1"/>
+    </visual>
+  </link>
+  
+  <link name="shoulder_link">
+    <visual>
+      <geometry>
+      <cylinder radius="0.1" length="0.15"/>
+      </geometry>
+      <origin xyz="0 0 0.075" rpy="0 0 0" />
+      <material name="mat_2"/>
+    </visual>
+  </link>
+  
+  <link name="elbow_juncture">
+    <visual>
+      <geometry>
+      <sphere radius="0.095"/>
+      </geometry>
+      <origin xyz="0 0 0.4085094802912023" rpy="0 0 0" />
+      <material name="mat_1"/>
+    </visual>
+  </link>
+  
+  <link name="elbow_link">
+    <visual>
+      <geometry>
+      <cylinder radius="0.04" length="0.4"/>
+      </geometry>
+      <origin xyz="0.45521025149219635 0 4.85722573273506e-17" rpy="0 1.5707963267948966 0" />
+      <material name="mat_3"/>
+    </visual>
+  </link>
+  
+  <link name="wrist_juncture">
+    <visual>
+      <geometry>
+      <cylinder radius="0.05" length="0.08"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="mat_4"/>
+    </visual>
+  </link>
+  
+  <link name="wrist_link">
+    <visual>
+      <geometry>
+      <cylinder radius="0.04" length="0.3"/>
+      </geometry>
+      <origin xyz="0.127136310341985 0 -3.469446951953614e-18" rpy="0 1.5707963267948966 0" />
+      <material name="mat_3"/>
+    </visual>
+  </link>
+  
+  <link name="knuckle_juncture">
+    <visual>
+      <geometry>
+      <cylinder radius="0.05" length="0.08"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="mat_5"/>
+    </visual>
+  </link>
+  
+  <link name="knuckle_link">
+    <visual>
+      <geometry>
+      <box size="0.08 0.075 0.04"/>
+      </geometry>
+      <origin xyz="0.04 0 0" rpy="0 0 0" />
+      <material name="mat_3"/>
+    </visual>
+  </link>
+  
+  <link name="finger_juncture">
+    <visual>
+      <geometry>
+      <box size="0.03 0.08 0.045"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="mat_1"/>
+    </visual>
+  </link>
+  
+</robot>

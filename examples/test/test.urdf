@@ -1,0 +1,37 @@
+<robot name="test">
+  <material name="mat_0">
+    <color rgba="0.90 0.52 0.52 1.0"/>
+  </material>
+  <material name="mat_1">
+    <color rgba="0.55 0.55 0.93 1.0"/>
+  </material>
+  <link name="box">
+    <visual>
+      <geometry>
+      <box size="7 15 19"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="mat_0"/>
+    </visual>
+  </link>
+  
+  <link name="box2">
+    <visual>
+      <geometry>
+      <box size="10 25 9"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0.03490658503988659 0 0" />
+      <material name="mat_1"/>
+    </visual>
+  </link>
+  
+  <link name="Cone 1">
+    <visual>
+      <geometry>
+        <mesh filename="package://meshes/Cone 1.stl" />
+      </geometry>
+      
+    </visual>
+  </link>
+  
+</robot>
