@@ -137,28 +137,10 @@ export class URDFWorker implements IJCadWorker {
     const meshesDirPath = `${exportDirPath}/meshes`;
 
     try {
-      // Create main export directory if it doesn't exist
-      try {
-        await contentsManager.get(exportDirPath);
-      } catch {
-        await contentsManager
-          .newUntitled({ path: dirPath, type: 'directory' })
-          .then((model: Contents.IModel) =>
-            contentsManager.rename(model.path, exportDirPath)
-          );
-      }
-
-      // Create meshes directory if needed and it doesn't exist
+      // Ensure export directories exist
+      await this._ensureDirectory(contentsManager, exportDirPath);
       if (meshes.length > 0) {
-        try {
-          await contentsManager.get(meshesDirPath);
-        } catch {
-          await contentsManager
-            .newUntitled({ path: exportDirPath, type: 'directory' })
-            .then((model: Contents.IModel) =>
-              contentsManager.rename(model.path, meshesDirPath)
-            );
-        }
+        await this._ensureDirectory(contentsManager, meshesDirPath);
       }
 
       // Save or overwrite the URDF file
@@ -207,6 +189,27 @@ export class URDFWorker implements IJCadWorker {
           }
         }
       });
+    }
+  }
+
+  private async _ensureDirectory(
+    contentsManager: Contents.IManager,
+    dirPath: string
+  ): Promise<void> {
+    if (!dirPath) {
+      return;
+    }
+    try {
+      await contentsManager.get(dirPath, { content: false });
+    } catch {
+      try {
+        await contentsManager.save(dirPath, { type: 'directory' });
+      } catch (saveError) {
+        console.warn(
+          `Directory creation for ${dirPath} skipped or handled implicitly:`,
+          saveError
+        );
+      }
     }
   }
 
